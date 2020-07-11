@@ -1,0 +1,39 @@
+.cpc-converter-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 20px 0;
+    padding: 0 20px;
+}
+
+.cpc-converter-container input[type='text']:focus {
+    outline: 0;
+}
+
+.cpc-converter-form-wrap {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    margin-bottom: 20px;
+    background-color: #b6d5d6;
+    padding: 20px;
+}
+
+.cpc-converter-history-wrap {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+}
+
+.cpc-converter-change-rate-button {
+    display: block;
+    padding: 15px 17px;
+    margin: 0 10px;
+    height: 50px;
+    width: 50px;
+    align-content: center;
+}
+
+.cpc-converter-change-rate-button:hover {
+    cursor: pointer;
+}
