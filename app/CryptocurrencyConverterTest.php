@@ -2,22 +2,28 @@
 
 namespace app;
 
-// use cpconverter\ConverterView;
+use app\ConverterView;
+use app\CoinMarketCapApi;
+use ConverterHistory;
+use ConverterCurrencies;
 
 class CryptocurrencyConverterTest
 {
     private $db;
 
-    private $tableName;
-
     private $fullPath;
 
-    function __construct($fullPath)
+    private $converterHistoryTable;
+
+    private $converterCurrenciesTable;
+
+    function __construct(string $fullPath)
     {
         global $wpdb;
         $this->db = $wpdb;
-        $this->tableName = "{$this->db->prefix}converter_history";
         $this->fullPath = $fullPath;
+        $this->converterHistoryTable = new ConverterHistory();
+        $this->converterCurrenciesTable = new ConverterCurrencies();
     }
 
     public function run()
@@ -25,28 +31,51 @@ class CryptocurrencyConverterTest
         register_activation_hook($this->fullPath, [$this, 'activate']);
         register_deactivation_hook($this->fullPath, [$this, 'deactivate']);
 
+        add_filter( 'cron_schedules', [$this, 'cronAddFiveMinutesInterval'] );
+
+        add_action('wp', [$this, 'activateScheduledUpdatingCurrencies']);
+
+        add_action ('cpc_converter_cron', [$this, 'doScheduledEvent']);
+
         add_filter('get_header', [$this, 'addConverter']);
     }
 
     public function activate()
     {
-        $sql = "CREATE TABLE {$this->tableName} (
-                id mediumint(9) NOT NULL AUTO_INCREMENT,
-                converted_from varchar(10) NOT NULL,
-                converted_to varchar(10) NOT NULL,
-                rate decimal(15,15) NOT NULL,
-                request_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                PRIMARY KEY  (id)
-                ) {$this->db->get_charset_collate()};";
+        $this->converterHistoryTable->createTable();
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-
-        dbDelta($sql);
+        $this->converterCurrenciesTable->createTable();
     }
 
     public function deactivate()
     {
-        $this->db->query("DROP TABLE IF EXISTS  {$this->tableName};");
+        $this->converterHistoryTable->deleteTable();
+
+        $this->converterCurrenciesTable->deleteTable();
+
+        $timestamp = wp_next_scheduled ('cpc_converter_cron');
+        wp_unschedule_event ($timestamp, 'cpc_converter_cron');
+    }
+
+    public function cronAddFiveMinutesInterval()
+    {
+        $schedules['everyfiveminutes'] = array(
+            'interval' => 60,
+            'display' => __( 'Once Every 5 Minutes' )
+        );
+        return $schedules;
+    }
+
+    public function activateScheduledUpdatingCurrencies()
+    {
+        if( !wp_next_scheduled( 'cpc_converter_cron' ) ) {
+            wp_schedule_event( time(), 'everyfiveminutes', 'cpc_converter_cron' );
+        }
+    }
+
+    public function doScheduledEvent()
+    {
+        $this->converterHistoryTable->deleteTable();
     }
 
     public function addConverter()

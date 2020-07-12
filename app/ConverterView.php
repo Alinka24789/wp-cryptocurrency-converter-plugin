@@ -6,10 +6,10 @@ namespace app;
 
 class ConverterView
 {
-    public static function view($name)
+    public static function view(string $name)
     {
 
-        $file = CONVERTER__PLUGIN_DIR . 'views/' . $name . '.php';
+        $file = CPC_PLUGIN_DIR . 'views/' . $name . '.php';
 
         include($file);
     }

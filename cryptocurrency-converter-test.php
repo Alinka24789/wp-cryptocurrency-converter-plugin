@@ -5,9 +5,9 @@ Description: Cryptocurrency converter test
 Version: 1.0
 Author: Alina Syrhiienko
 */
-define( 'CONVERTER__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define('CPC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
-require_once( CONVERTER__PLUGIN_DIR . 'loader.php' );
+require_once( CPC_PLUGIN_DIR . 'loader.php' );
 
 use app\CryptocurrencyConverterTest;
 
