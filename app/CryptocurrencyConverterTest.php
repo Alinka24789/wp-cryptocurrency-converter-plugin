@@ -60,7 +60,7 @@ class CryptocurrencyConverterTest
     public function cronAddFiveMinutesInterval()
     {
         $schedules['everyfiveminutes'] = array(
-            'interval' => 60,
+            'interval' => 300,
             'display' => __( 'Once Every 5 Minutes' )
         );
         return $schedules;
@@ -75,7 +75,7 @@ class CryptocurrencyConverterTest
 
     public function doScheduledEvent()
     {
-        $this->converterHistoryTable->deleteTable();
+        $this->converterCurrenciesTable->updateFromApi();
     }
 
     public function addConverter()
