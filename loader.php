@@ -12,3 +12,5 @@ require_once(CPC_PLUGIN_DIR . 'app/CoinMarketCapApi.php');
 require_once(CPC_PLUGIN_DIR . 'app/db/ConverterDBWrap.php');
 require_once(CPC_PLUGIN_DIR . 'app/db/ConverterHistory.php');
 require_once(CPC_PLUGIN_DIR . 'app/db/ConverterCurrencies.php');
+require_once(CPC_PLUGIN_DIR . 'app/http/CPCHttp.php');
+require_once(CPC_PLUGIN_DIR . 'app/services/Helper.php');

@@ -31,7 +31,7 @@ abstract class ConverterDBWrap
         return $this->db->prefix . $this->tableName;
     }
 
-    public function doInsert(array $placeHolders, string $fieldsNames,array $values)
+    public function doMultiInsert(array $placeHolders, string $fieldsNames,array $values)
     {
 
         $query = "INSERT INTO {$this->getWPFullTableName()} ({$fieldsNames}) VALUES ";

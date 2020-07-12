@@ -1,16 +1,14 @@
 <?php
   use app\ConverterView;
-
-  wp_enqueue_style('cpc_converter_styles', CPC_PLUGIN_URL . 'public/css/style.css');
-  wp_enqueue_script( 'cpc_converter_js', CPC_PLUGIN_URL . 'public/js/index.js', array( 'jquery' ), '1.0.0', true );
 ?>
-<div class="cpc-converter-container">
+<div class="cpc-converter-container" style="display: none;">
+    <h3>Cryptocurrency converter</h3>
         <?php
-        ConverterView::view('converter-form')
+        ConverterView::view('converter-form', ['currencies' => $currencies, 'exchangeRate' => $exchangeRate])
         ?>
 
         <?php
-        ConverterView::view('converter-history')
+        ConverterView::view('converter-history', ['history' => $history])
         ?>
 
 </div>

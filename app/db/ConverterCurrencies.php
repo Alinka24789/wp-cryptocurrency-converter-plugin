@@ -72,12 +72,27 @@ class ConverterCurrencies extends ConverterDBWrap
         }
 
         $this->truncateTable();
-        $this->doInsert($placeHolders, implode(', ', $this->columns), $values);
+        $this->doMultiInsert($placeHolders, implode(', ', $this->columns), $values);
         return true;
     }
 
     public function getCurrenciesList()
     {
+        return $this->db->get_results("SELECT " . self::CURRENCY_ID . ", " . self::CURRENCY_NAME . ", " . self::CURRENCY_SYMBOL . " FROM {$this->getWPFullTableName()}");
+    }
 
+    public function getExchangeRate(string $fromCurrency = 'BTC', string $toCurrency = 'ETH', float $count = 1)
+    {
+        $fromCurrencyRow = $this->db->get_row("SELECT * FROM {$this->getWPFullTableName()} WHERE " . self::CURRENCY_SYMBOL . "='{$fromCurrency}'");
+        $toCurrencyRow = $this->db->get_row("SELECT * FROM {$this->getWPFullTableName()} WHERE " . self::CURRENCY_SYMBOL . "='{$toCurrency}'");
+
+        $exchangeRate = $fromCurrencyRow->usd_price / $toCurrencyRow->usd_price * $count;
+
+        return [
+            'from' => $fromCurrency,
+            'to' => $toCurrency,
+            'count' => $count,
+            'rate' => $exchangeRate
+        ];
     }
 }

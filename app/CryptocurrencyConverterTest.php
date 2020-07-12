@@ -4,26 +4,26 @@ namespace app;
 
 use app\ConverterView;
 use app\CoinMarketCapApi;
+use app\http\CPCHttp;
 use ConverterHistory;
 use ConverterCurrencies;
 
 class CryptocurrencyConverterTest
 {
-    private $db;
-
     private $fullPath;
 
     private $converterHistoryTable;
 
     private $converterCurrenciesTable;
 
+    private $http;
+
     function __construct(string $fullPath)
     {
-        global $wpdb;
-        $this->db = $wpdb;
         $this->fullPath = $fullPath;
         $this->converterHistoryTable = new ConverterHistory();
         $this->converterCurrenciesTable = new ConverterCurrencies();
+        $this->http = new CPCHttp();
     }
 
     public function run()
@@ -37,7 +37,12 @@ class CryptocurrencyConverterTest
 
         add_action ('cpc_converter_cron', [$this, 'doScheduledEvent']);
 
+        add_action('wp_enqueue_scripts', [$this, 'registerScripts']);
+
         add_filter('get_header', [$this, 'addConverter']);
+
+        add_action( 'wp_ajax_getRate', [$this->http, 'getRate'] );
+        add_action( 'wp_ajax_nopriv_getRate', [$this->http, 'getRate'] );
     }
 
     public function activate()
@@ -45,6 +50,21 @@ class CryptocurrencyConverterTest
         $this->converterHistoryTable->createTable();
 
         $this->converterCurrenciesTable->createTable();
+
+        $this->converterCurrenciesTable->updateFromApi();
+    }
+
+    public function registerScripts()
+    {
+        wp_register_style('cpc_converter_styles', CPC_PLUGIN_URL . 'public/css/style.css');
+        wp_register_style('cpc_converter_input_styles', CPC_PLUGIN_URL . 'public/css/converter-input.css');
+        wp_enqueue_style('cpc_converter_styles');
+        wp_enqueue_style('cpc_converter_input_styles', ['cpc_converter_styles']);
+        wp_enqueue_script( 'cpc_converter_js', CPC_PLUGIN_URL . 'public/js/index.js', array( 'jquery' ), '1.0.0' );
+
+        $protocol = isset( $_SERVER['HTTPS'] ) ? 'https://' : 'http://';
+        wp_localize_script( 'cpc_converter_js', 'cpc_object',
+            array( 'cpc_ajax_url' => admin_url( 'admin-ajax.php', $protocol )));
     }
 
     public function deactivate()
@@ -83,7 +103,13 @@ class CryptocurrencyConverterTest
         if ($_SERVER['REQUEST_URI'] !== '/') {
             return;
         }
-
-        ConverterView::view('index');
+        $currencies = $this->converterCurrenciesTable->getCurrenciesList();
+        $exchangeRate = $this->converterCurrenciesTable->getExchangeRate();
+        $history = $this->converterHistoryTable->getRecentlyConverted();
+        ConverterView::view('index', [
+            'currencies' => $currencies,
+            'exchangeRate' => $exchangeRate,
+            'history' => $history
+        ]);
     }
 }
