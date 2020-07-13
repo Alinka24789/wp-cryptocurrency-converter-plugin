@@ -2,8 +2,6 @@
 
 namespace app;
 
-use app\ConverterView;
-use app\CoinMarketCapApi;
 use app\http\CPCHttp;
 use ConverterHistory;
 use ConverterCurrencies;
@@ -33,8 +31,6 @@ class CryptocurrencyConverterTest
 
         add_filter( 'cron_schedules', [$this, 'cronAddFiveMinutesInterval'] );
 
-        add_action('wp', [$this, 'activateScheduledUpdatingCurrencies']);
-
         add_action ('cpc_converter_cron', [$this, 'doScheduledEvent']);
 
         add_action('wp_enqueue_scripts', [$this, 'registerScripts']);
@@ -52,6 +48,8 @@ class CryptocurrencyConverterTest
         $this->converterCurrenciesTable->createTable();
 
         $this->converterCurrenciesTable->updateFromApi();
+
+        $this->activateScheduledUpdatingCurrencies();
     }
 
     public function registerScripts()
@@ -81,7 +79,7 @@ class CryptocurrencyConverterTest
     {
         $schedules['everyfiveminutes'] = array(
             'interval' => 300,
-            'display' => __( 'Once Every 5 Minutes' )
+            'display' => esc_html__( 'Once Every 5 Minutes' )
         );
         return $schedules;
     }

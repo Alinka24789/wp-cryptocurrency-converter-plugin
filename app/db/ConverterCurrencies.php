@@ -41,38 +41,44 @@ class ConverterCurrencies extends ConverterDBWrap
 
     public function updateFromApi()
     {
-        $coinApi = new CoinMarketCapApi();
-        $results = $coinApi->getCryptocurrencyListings();
+        try {
+            $coinApi = new CoinMarketCapApi();
+            $results = $coinApi->getCryptocurrencyListings();
 
-        if (!count($results->data)) {
-            error_log('No list currencies were received from CoinMarketCap API');
-            return false;
-        }
-        $dataToInsert = [];
-        foreach ($results->data as $currency) {
-            $row = [
-                self::CURRENCY_NAME   => $currency->name,
-                self::CURRENCY_SLUG   => $currency->slug,
-                self::CURRENCY_SYMBOL => $currency->symbol,
-                self::USD_PRICE       => $currency->quote->USD->price,
-                self::UPDATED_AT      => gmdate("Y-m-d H:i:s")
-            ];
-            array_push($dataToInsert, $row);
-        }
-        $dataToInsertChunked = array_chunk($dataToInsert, 1000);
-
-        $values = $placeHolders = [];
-        foreach ($dataToInsertChunked as $currencies) {
-            foreach ($currencies as $currency) {
-                array_push($values, $currency[self::CURRENCY_NAME], $currency[self::CURRENCY_SLUG],
-                    $currency[self::CURRENCY_SYMBOL],
-                    $currency[self::USD_PRICE], $currency[self::UPDATED_AT]);
-                $placeHolders[] = "( %s, %s, %s, %s, %s)";
+            if (!count($results->data)) {
+                error_log('No list currencies were received from CoinMarketCap API');
+                return false;
             }
-        }
+            $dataToInsert = [];
+            foreach ($results->data as $currency) {
+                $row = [
+                    self::CURRENCY_NAME   => $currency->name,
+                    self::CURRENCY_SLUG   => $currency->slug,
+                    self::CURRENCY_SYMBOL => $currency->symbol,
+                    self::USD_PRICE       => $currency->quote->USD->price,
+                    self::UPDATED_AT      => gmdate("Y-m-d H:i:s")
+                ];
+                array_push($dataToInsert, $row);
+            }
+            $dataToInsertChunked = array_chunk($dataToInsert, 1000);
 
-        $this->truncateTable();
-        $this->doMultiInsert($placeHolders, implode(', ', $this->columns), $values);
+            $values = $placeHolders = [];
+            foreach ($dataToInsertChunked as $currencies) {
+                foreach ($currencies as $currency) {
+                    array_push($values, $currency[self::CURRENCY_NAME], $currency[self::CURRENCY_SLUG],
+                        $currency[self::CURRENCY_SYMBOL],
+                        $currency[self::USD_PRICE], $currency[self::UPDATED_AT]);
+                    $placeHolders[] = "( %s, %s, %s, %s, %s)";
+                }
+            }
+            $this->db->query('START TRANSACTION');
+            $this->deleteAllRecords();
+            $this->doMultiInsert($placeHolders, implode(', ', $this->columns), $values);
+            $this->db->query('COMMIT');
+        } catch (Exception $error) {
+            print_r($error->getMessage());
+            $this->db->query('ROLLBACK');
+        }
         return true;
     }
 

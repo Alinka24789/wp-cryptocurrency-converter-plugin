@@ -54,4 +54,9 @@ abstract class ConverterDBWrap
     {
         $this->db->query("TRUNCATE TABLE {$this->getWPFullTableName()};");
     }
+
+    public function deleteAllRecords()
+    {
+        $this->db->query("DELETE FROM {$this->getWPFullTableName()};");
+    }
 }

@@ -4,6 +4,8 @@ define( 'CPC_PLUGIN_FILE', __FILE__ );
 define( 'CONVERTER__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define('CPC_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+define('DISABLE_WP_CRON', true);
+
 require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 require_once(CPC_PLUGIN_DIR . 'config.php');
 require_once(CPC_PLUGIN_DIR . 'app/CryptocurrencyConverterTest.php');
