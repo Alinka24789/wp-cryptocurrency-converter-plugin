@@ -9,15 +9,9 @@ class CoinMarketCapApi
 
     public static $apiUrl = CPC_CONVERTER_COIN_MARKET_CAP_API_URL;
 
-    function __construct()
-    {
-
-    }
-
     public function getCryptocurrencyListings()
     {
         return self::get('/cryptocurrency/listings/latest?limit=5000');
-
     }
 
     private static function get(string $url)
