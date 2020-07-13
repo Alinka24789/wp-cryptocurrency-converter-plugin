@@ -13,16 +13,32 @@ class CPCHttp
         $toCurrency = trim($_POST['toCurrency']);
         $count = floatval($_POST['count']);
 
-        $converterCurrencies = new ConverterCurrencies();
-        $rate = $converterCurrencies->getExchangeRate($fromCurrency, $toCurrency, $count);
+        $regex = '/^[A-Za-z0-9]{2,}$/';
 
-        $converterHistory = new ConverterHistory();
-        $converterHistory->saveConverterResult($rate['from'], $rate['to'], $rate['count'], $rate['rate']);
+        if (!preg_match($regex, $fromCurrency) || !preg_match($regex, $toCurrency) || !$count) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Data isn`t correct'
+            ]);
+        }
 
-        echo json_encode([
-            'status' => 'success',
-            'data'   => $rate
-        ]);
+        try {
+            $converterCurrencies = new ConverterCurrencies();
+            $rate = $converterCurrencies->getExchangeRate($fromCurrency, $toCurrency, $count);
+
+            $converterHistory = new ConverterHistory();
+            $converterHistory->saveConverterResult($rate['from'], $rate['to'], $rate['count'], $rate['rate']);
+
+            echo json_encode([
+                'status' => 'success',
+                'data'   => $rate
+            ]);
+        } catch (\Exception $error) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => $error->getMessage()
+            ]);
+        }
 
         wp_die();
     }
